@@ -62,10 +62,6 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
                       Chip(label: Text(type.capitalized)),
                   ],
                 ),
-                // Text(
-                //   'Types: ${pokemon.types.map((type) => type.capitalized).join(', ')}',
-                //   style: Theme.of(context).textTheme.titleMedium,
-                // ),
                 const SizedBox(height: 16),
                 // _Stat: Height/Weight
                 Row(
@@ -76,7 +72,6 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
                     _Stat(label: 'Weight', value: '${pokemon.weight / 10} kg'),
                   ],
                 ),
-                //Text('${pokemon.height / 10} m / ${pokemon.weight / 10} kg'),
               ],
             ),
           );
