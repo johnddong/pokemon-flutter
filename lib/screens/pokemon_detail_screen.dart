@@ -53,17 +53,49 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
                 else
                   Icon(Icons.catching_pokemon, size: 120),
                 const SizedBox(height: 16),
-                Text(
-                  'Types: ${pokemon.types.map((type) => type.capitalized).join(', ')}',
-                  style: Theme.of(context).textTheme.titleMedium,
+                // chips
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final type in pokemon.types)
+                      Chip(label: Text(type.capitalized)),
+                  ],
                 ),
                 const SizedBox(height: 16),
-                Text('${pokemon.height / 10} m / ${pokemon.weight / 10} kg'),
+                // _Stat: Height/Weight
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _Stat(label: 'Height', value: '${pokemon.height / 10} m'),
+                    const SizedBox(width: 32),
+                    _Stat(label: 'Weight', value: '${pokemon.weight / 10} kg'),
+                  ],
+                ),
               ],
             ),
           );
         },
       ),
+    );
+  }
+}
+
+// Weight/Height Widget
+class _Stat extends StatelessWidget {
+  const _Stat({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(label, style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 4),
+        Text(value, style: Theme.of(context).textTheme.titleMedium),
+      ],
     );
   }
 }
