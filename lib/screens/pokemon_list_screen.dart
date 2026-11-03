@@ -13,36 +13,60 @@ class PokemonListScreen extends StatefulWidget {
 }
 
 class _PokemonListScreenState extends State<PokemonListScreen> {
-  late final Future<List<PokemonListItem>> _pokemonFuture;
+  final List<PokemonListItem> _pokemon = [];
+  static const int _pageSize = 3;
+  int _offset = 0;
+  bool _isLoading = false;
+  bool _hasMore = true;
+  String? _error;
+
+  Future<void> _loadMore() async {
+    if (_isLoading || !_hasMore) return;
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final page = await PokemonApi.getPokemon(
+        limit: _pageSize,
+        offset: _offset,
+      );
+      setState(() {
+        _pokemon.addAll(page);
+        _offset += page.length;
+        _hasMore = page.length >= _pageSize;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _pokemonFuture = PokemonApi.getPokemon();
+    _loadMore();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
-      body: FutureBuilder<List<PokemonListItem>>(
-        future: _pokemonFuture,
-        builder: (context, snapshot) {
-          // error
-          if (snapshot.hasError) {
-            return Center(child: Text('Could not load Pokémon'));
-          }
-          // loading
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    Widget body;
 
-          return ListView.builder(
-            itemCount: snapshot.data?.length ?? 0,
-            itemBuilder: (context, index) {
-              final list = snapshot.data ?? [];
-              final pokemon = list[index];
-
+    if (_pokemon.isEmpty && _isLoading) {
+      body = const Center(child: CircularProgressIndicator());
+    } else if (_error != null && _pokemon.isEmpty) {
+      body = Center(child: Text('Could not load Pokémon'));
+    } else {
+      // list of pokemon
+      body = CustomScrollView(
+        slivers: [
+          SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final pokemon = _pokemon[index];
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: ListTile(
@@ -63,10 +87,32 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
                   },
                 ),
               );
-            },
-          );
-        },
-      ),
+            }, childCount: _pokemon.length),
+          ),
+          // Load more button
+          if (_hasMore)
+            SliverToBoxAdapter(
+              child: _isLoading
+                  ? const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : TextButton.icon(
+                      label: Text(
+                        'Load more',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      onPressed: _loadMore,
+                      icon: const Icon(Icons.arrow_downward),
+                    ),
+            ),
+        ],
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.title)),
+      body: body,
     );
   }
 }

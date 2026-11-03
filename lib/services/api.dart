@@ -4,12 +4,19 @@ import 'package:pokemon/models/pokemon_list_item.dart';
 import 'package:pokemon/models/pokemon.dart';
 
 class PokemonApi {
+  static const int pageSize = 5;
   static const String host = 'pokeapi.co';
 
-  // get the first 25 pokemon
-  static Future<List<PokemonListItem>> getPokemon() async {
+  // get pokemon list
+  static Future<List<PokemonListItem>> getPokemon({
+    int limit = pageSize,
+    int offset = 0,
+  }) async {
     final response = await http.get(
-      Uri.https(host, '/api/v2/pokemon', {'limit': '25'}),
+      Uri.https(host, '/api/v2/pokemon', {
+        'limit': '$limit',
+        'offset': '$offset',
+      }),
     );
 
     if (response.statusCode != 200) {
