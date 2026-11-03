@@ -14,6 +14,25 @@ class PokemonDetailScreen extends StatefulWidget {
 
 class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
   late Future<Pokemon> _pokemonFuture;
+  // 3D-like tilt
+  double _tiltX = 0;
+  double _tiltY = 0;
+
+  void _onPanUpdate(DragUpdateDetails details) {
+    setState(() {
+      _tiltY += details.delta.dx * 0.01;
+      _tiltX -= details.delta.dy * 0.01;
+      _tiltX = _tiltX.clamp(-0.5, 0.5);
+      _tiltY = _tiltY.clamp(-0.8, 0.8);
+    });
+  }
+
+  void _onPanEnd(DragEndDetails details) {
+    setState(() {
+      _tiltX = 0;
+      _tiltY = 0;
+    });
+  }
 
   @override
   void initState() {
@@ -44,11 +63,23 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (pokemon.imageUrl != null)
-                  Image.network(
-                    pokemon.imageUrl!,
-                    height: 280,
-                    width: 280,
-                    fit: BoxFit.contain,
+                  // 3D-like tilt
+                  GestureDetector(
+                    onPanUpdate: _onPanUpdate,
+                    onPanEnd: _onPanEnd,
+                    child: Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.identity()
+                        ..setEntry(3, 2, 0.001) // perspective (the “3D” bit)
+                        ..rotateX(_tiltX)
+                        ..rotateY(_tiltY),
+                      child: Image.network(
+                        pokemon.imageUrl!,
+                        height: 280,
+                        width: 280,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   )
                 else
                   Icon(Icons.catching_pokemon, size: 120),
