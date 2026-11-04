@@ -49,7 +49,22 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
         builder: (context, snapshot) {
           // error
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            //return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.catching_pokemon, size: 72),
+                  const SizedBox(height: 16),
+                  Text('Pokémon not found'),
+                  const SizedBox(height: 16),
+                  OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('Back to list'),
+                  ),
+                ],
+              ),
+            );
           }
           // loading
           if (snapshot.connectionState == ConnectionState.waiting) {

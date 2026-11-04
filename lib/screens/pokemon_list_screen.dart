@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'pokemon_detail_screen.dart';
 import 'package:pokemon/services/api.dart';
 import 'package:pokemon/models/pokemon_list_item.dart';
+import 'package:pokemon/widgets/search_field.dart';
 
 class PokemonListScreen extends StatefulWidget {
   const PokemonListScreen({super.key, required this.title});
@@ -14,12 +15,36 @@ class PokemonListScreen extends StatefulWidget {
 
 class _PokemonListScreenState extends State<PokemonListScreen> {
   final List<PokemonListItem> _pokemon = [];
-  static const int _pageSize = 3;
+  static const int _pageSize = 10;
   int _offset = 0;
   bool _isLoading = false;
   bool _hasMore = true;
   String? _error;
 
+  // search
+  void _search(String query) {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PokemonDetailScreen(pokemonName: q),
+      ),
+    );
+  }
+
+  // load all pokémon names for search query
+  List<PokemonListItem> _catalog = [];
+  Future<void> _loadNames() async {
+    try {
+      final catalog = await PokemonApi.getAllPokemon();
+      setState(() {
+        _catalog = catalog;
+      });
+    } catch (_) {}
+  }
+
+  // load more pokémon
   Future<void> _loadMore() async {
     if (_isLoading || !_hasMore) return;
     setState(() {
@@ -50,6 +75,7 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
   void initState() {
     super.initState();
     _loadMore();
+    _loadNames();
   }
 
   @override
@@ -104,6 +130,7 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
                       ),
                       onPressed: _loadMore,
                       icon: const Icon(Icons.arrow_downward),
+                      iconAlignment: IconAlignment.end,
                     ),
             ),
         ],
@@ -111,7 +138,10 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        // search autocomplete
+        title: SearchField(catalog: _catalog, onSearch: _search),
+      ),
       body: body,
     );
   }

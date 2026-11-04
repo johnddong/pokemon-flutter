@@ -47,6 +47,28 @@ class PokemonApi {
 
     return Pokemon.fromJson(data);
   }
+
+  // get pokemon count
+  static Future<int> getPokemonCount() async {
+    final response = await http.get(
+      Uri.https(host, '/api/v2/pokemon', {'limit': '1'}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load pokemon count: ${response.statusCode}');
+    }
+
+    final Map<String, dynamic> data = json.decode(response.body);
+
+    return data['count'] as int;
+  }
+
+  // get all pokemons for search query
+  static Future<List<PokemonListItem>> getAllPokemon() async {
+    final count = await getPokemonCount();
+    final pokemon = await getPokemon(limit: count);
+    return pokemon;
+  }
 }
 
 /**
