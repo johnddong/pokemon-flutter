@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pokemon/models/pokemon.dart';
 import 'package:pokemon/services/api.dart';
 import 'package:pokemon/extensions/string_capitalized.dart';
+import 'package:pokemon/theme/type_colors.dart';
 
 class PokemonDetailScreen extends StatefulWidget {
   const PokemonDetailScreen({super.key, required this.pokemonName});
@@ -105,7 +106,12 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
                   runSpacing: 8,
                   children: [
                     for (final type in pokemon.types)
-                      Chip(label: Text(type.capitalized)),
+                      Chip(
+                        label: Text(type.capitalized),
+                        backgroundColor: typeColor(type),
+                        labelStyle: TextStyle(color: Colors.white),
+                        side: BorderSide(color: typeColor(type)),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 16),

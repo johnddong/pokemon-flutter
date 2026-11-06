@@ -69,6 +69,55 @@ class PokemonApi {
     final pokemon = await getPokemon(limit: count);
     return pokemon;
   }
+
+  // get all types
+  static Future<List<String>> getAllTypes() async {
+    final response = await http.get(Uri.https(host, '/api/v2/type'));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load types: ${response.statusCode}');
+    }
+
+    final Map<String, dynamic> data = json.decode(response.body);
+    const skip = ['unknown', 'shadow', 'stellar'];
+
+    return (data['results'] as List)
+        .map((result) => result['name'] as String)
+        .where((name) => !skip.contains(name))
+        .toList();
+  }
+
+  // get pokemon by type
+  static Future<List<PokemonListItem>> getPokemonByType(String type) async {
+    final response = await http.get(Uri.https(host, '/api/v2/type/$type'));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load pokemon by type ${response.statusCode}');
+    }
+
+    final Map<String, dynamic> data = json.decode(response.body);
+
+    final pokemon = data['pokemon'] as List;
+
+    return pokemon
+        .map((item) => PokemonListItem.fromJson(item['pokemon']))
+        .toList();
+  }
+
+  // get pokemon count by type
+  static Future<int> getPokemonCountByType(String type) async {
+    final response = await http.get(Uri.https(host, '/api/v2/type/$type'));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to load pokemon count by type: ${response.statusCode}',
+      );
+    }
+
+    final pokemon = json.decode(response.body)['pokemon'] as List;
+
+    return pokemon.length;
+  }
 }
 
 /**
