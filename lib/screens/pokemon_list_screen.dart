@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:pokemon/extensions/string_capitalized.dart';
+import 'package:pokemon/models/type_info.dart';
+import 'package:pokemon/screens/pokemon_type_screen.dart';
+import 'package:pokemon/theme/type_colors.dart';
+import 'package:pokemon/theme/type_mascots.dart';
+import 'package:pokemon/widgets/pokemon_tile.dart';
+import 'package:pokemon/widgets/section_header.dart';
 import 'pokemon_detail_screen.dart';
 import 'package:pokemon/services/api.dart';
 import 'package:pokemon/models/pokemon_list_item.dart';
@@ -14,13 +21,6 @@ class PokemonListScreen extends StatefulWidget {
 }
 
 class _PokemonListScreenState extends State<PokemonListScreen> {
-  final List<PokemonListItem> _pokemon = [];
-  static const int _pageSize = 10;
-  int _offset = 0;
-  bool _isLoading = false;
-  bool _hasMore = true;
-  String? _error;
-
   // search
   void _search(String query) {
     final q = query.trim().toLowerCase();
@@ -33,7 +33,30 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
     );
   }
 
-  // load all pokémon names for search query
+  // load all types
+  List<TypeInfo> _types = [];
+  Future<void> _loadTypes() async {
+    try {
+      // get all types
+      final types = await PokemonApi.getAllTypes();
+      // get pokemon count by each type
+      final counts = await Future.wait(
+        types.map(PokemonApi.getPokemonCountByType),
+      );
+      // 1. create a list of TypeInfo objects
+      // 2. sort the list by count in descending order
+      final sortedTypes = [
+        for (final (index, name) in types.indexed)
+          TypeInfo(name: name, count: counts[index]),
+      ]..sort((a, b) => b.count.compareTo(a.count));
+
+      setState(() {
+        _types = sortedTypes;
+      });
+    } catch (_) {}
+  }
+
+  // search query
   List<PokemonListItem> _catalog = [];
   Future<void> _loadNames() async {
     try {
@@ -45,6 +68,13 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
   }
 
   // load more pokémon
+  final List<PokemonListItem> _pokemon = [];
+  static const int _pageSize = 10;
+  int _offset = 0;
+  bool _isLoading = false;
+  bool _hasMore = true;
+  String? _error;
+
   Future<void> _loadMore() async {
     if (_isLoading || !_hasMore) return;
     setState(() {
@@ -74,8 +104,9 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadMore();
+    _loadTypes();
     _loadNames();
+    _loadMore();
   }
 
   @override
@@ -90,29 +121,86 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
       // list of pokemon
       body = CustomScrollView(
         slivers: [
+          SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'By type',
+              subtitle: '${_types.length} types',
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            sliver: SliverGrid.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 1.8,
+              children: [
+                for (final type in _types)
+                  Material(
+                    color: Color.lerp(typeColor(type.name), Colors.white, 0.82),
+                    elevation: 0,
+                    shadowColor: Colors.black26,
+                    borderRadius: BorderRadius.circular(16),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                PokemonTypeScreen(type: type.name),
+                          ),
+                        );
+                      },
+                      child: Stack(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  type.name.capitalized,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
+                                      ),
+                                ),
+                                Text(
+                                  '${type.count} Pokémon',
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Positioned(
+                            right: 4,
+                            bottom: 0,
+                            child: Image.network(
+                              typeMascotUrl(type.name),
+                              width: 88,
+                              height: 88,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
           SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
               final pokemon = _pokemon[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: ListTile(
-                  leading: SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: Image.network(pokemon.spriteUrl),
-                  ),
-                  title: Text(pokemon.displayName),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            PokemonDetailScreen(pokemonName: pokemon.name),
-                      ),
-                    );
-                  },
-                ),
-              );
+              return PokemonTile(pokemon: pokemon);
             }, childCount: _pokemon.length),
           ),
           // Load more button
