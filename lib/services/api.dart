@@ -8,7 +8,7 @@ class PokemonApi {
   static const String host = 'pokeapi.co';
 
   // get pokemon list
-  static Future<List<PokemonListItem>> getPokemon({
+  static Future<({List<PokemonListItem> items, int totalCount})> getPokemon({
     int limit = pageSize,
     int offset = 0,
   }) async {
@@ -26,13 +26,13 @@ class PokemonApi {
     final Map<String, dynamic> data = json.decode(response.body);
 
     // Convert the map to a list of PokemonListItem objects
-    final results = (data['results'] as List)
+    final items = (data['results'] as List)
         .map(
           (result) => PokemonListItem.fromJson(result as Map<String, dynamic>),
         )
         .toList();
 
-    return results;
+    return (items: items, totalCount: data['count'] as int);
   }
 
   // get a single pokemon by name
@@ -67,7 +67,7 @@ class PokemonApi {
   static Future<List<PokemonListItem>> getAllPokemon() async {
     final count = await getPokemonCount();
     final pokemon = await getPokemon(limit: count);
-    return pokemon;
+    return pokemon.items;
   }
 
   // get all types
