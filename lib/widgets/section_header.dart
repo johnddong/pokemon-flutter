@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pokemon/theme/spacing.dart';
 
 class SectionHeader extends StatelessWidget {
   const SectionHeader({
@@ -19,7 +20,7 @@ class SectionHeader extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

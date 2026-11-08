@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pokemon/extensions/string_capitalized.dart';
 import 'package:pokemon/models/type_info.dart';
 import 'package:pokemon/screens/pokemon_type_screen.dart';
+import 'package:pokemon/theme/spacing.dart';
 import 'package:pokemon/theme/type_colors.dart';
 import 'package:pokemon/theme/type_mascots.dart';
-import 'package:pokemon/widgets/pokemon_tile.dart';
+import 'package:pokemon/widgets/pokemon_grid.dart';
 import 'package:pokemon/widgets/section_header.dart';
 import 'pokemon_detail_screen.dart';
 import 'package:pokemon/services/api.dart';
@@ -71,6 +73,7 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
   final List<PokemonListItem> _pokemon = [];
   static const int _pageSize = 10;
   int _offset = 0;
+  int _count = 0;
   bool _isLoading = false;
   bool _hasMore = true;
   String? _error;
@@ -88,9 +91,10 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
         offset: _offset,
       );
       setState(() {
-        _pokemon.addAll(page);
-        _offset += page.length;
-        _hasMore = page.length >= _pageSize;
+        _pokemon.addAll(page.items);
+        _offset += page.items.length;
+        _hasMore = page.items.length >= _pageSize;
+        _count = page.totalCount;
         _isLoading = false;
       });
     } catch (e) {
@@ -118,9 +122,9 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
     } else if (_error != null && _pokemon.isEmpty) {
       body = Center(child: Text('Could not load Pokémon'));
     } else {
-      // list of pokemon
       body = CustomScrollView(
         slivers: [
+          // By type section
           SliverToBoxAdapter(
             child: SectionHeader(
               title: 'By type',
@@ -128,11 +132,16 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screen,
+              AppSpacing.belowTitle,
+              AppSpacing.screen,
+              AppSpacing.betweenSections,
+            ),
             sliver: SliverGrid.count(
               crossAxisCount: 2,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
+              mainAxisSpacing: AppSpacing.gridGap,
+              crossAxisSpacing: AppSpacing.gridGap,
               childAspectRatio: 1.8,
               children: [
                 for (final type in _types)
@@ -197,29 +206,53 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
               ],
             ),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-              final pokemon = _pokemon[index];
-              return PokemonTile(pokemon: pokemon);
-            }, childCount: _pokemon.length),
+          // All Pokémon section
+          SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'All Pokémon',
+              subtitle: 'By Pokédex number',
+              trailing:
+                  '${NumberFormat('#,###', 'en_US').format(_count)} Pokemon',
+            ),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screen,
+              AppSpacing.belowTitle,
+              AppSpacing.screen,
+              0,
+            ),
+            sliver: SliverGrid.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: AppSpacing.gridGap,
+                crossAxisSpacing: AppSpacing.gridGap,
+                childAspectRatio: 1,
+              ),
+              itemCount: _pokemon.length,
+              itemBuilder: (context, index) =>
+                  PokemonGrid(pokemon: _pokemon[index]),
+            ),
           ),
           // Load more button
           if (_hasMore)
             SliverToBoxAdapter(
-              child: _isLoading
-                  ? const Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Center(child: CircularProgressIndicator()),
-                    )
-                  : TextButton.icon(
-                      label: Text(
-                        'Load more',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      onPressed: _loadMore,
-                      icon: const Icon(Icons.arrow_downward),
-                      iconAlignment: IconAlignment.end,
-                    ),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Center(
+                  child: _isLoading
+                      ? const CircularProgressIndicator()
+                      : TextButton.icon(
+                          label: Text(
+                            'Load more',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          onPressed: _loadMore,
+                          icon: const Icon(Icons.arrow_downward),
+                          iconAlignment: IconAlignment.end,
+                        ),
+                ),
+              ),
             ),
         ],
       );
