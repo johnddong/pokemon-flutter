@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pokemon/extensions/string_capitalized.dart';
 import 'package:pokemon/models/type_info.dart';
 import 'package:pokemon/screens/pokemon_type_screen.dart';
+import 'package:pokemon/theme/spacing.dart';
 import 'package:pokemon/theme/type_colors.dart';
 import 'package:pokemon/theme/type_mascots.dart';
 import 'package:pokemon/widgets/pokemon_grid.dart';
@@ -130,11 +132,16 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 24),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screen,
+              AppSpacing.belowTitle,
+              AppSpacing.screen,
+              AppSpacing.betweenSections,
+            ),
             sliver: SliverGrid.count(
               crossAxisCount: 2,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
+              mainAxisSpacing: AppSpacing.gridGap,
+              crossAxisSpacing: AppSpacing.gridGap,
               childAspectRatio: 1.8,
               children: [
                 for (final type in _types)
@@ -204,16 +211,22 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
             child: SectionHeader(
               title: 'All Pokémon',
               subtitle: 'By Pokédex number',
-              trailing: '$_count Pokemon',
+              trailing:
+                  '${NumberFormat('#,###', 'en_US').format(_count)} Pokemon',
             ),
           ),
           SliverPadding(
-            padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screen,
+              AppSpacing.belowTitle,
+              AppSpacing.screen,
+              0,
+            ),
             sliver: SliverGrid.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
+                mainAxisSpacing: AppSpacing.gridGap,
+                crossAxisSpacing: AppSpacing.gridGap,
                 childAspectRatio: 1,
               ),
               itemCount: _pokemon.length,
@@ -225,7 +238,7 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
           if (_hasMore)
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(8),
                 child: Center(
                   child: _isLoading
                       ? const CircularProgressIndicator()

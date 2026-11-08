@@ -33,11 +33,8 @@ class _PokemonGridState extends State<PokemonGrid> {
     return Card(
       margin: EdgeInsets.zero,
       elevation: 0,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        //side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
+      color: Theme.of(context).colorScheme.surfaceContainerLowest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {
@@ -49,7 +46,7 @@ class _PokemonGridState extends State<PokemonGrid> {
           );
         },
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
           child: FutureBuilder<Pokemon>(
             future: _pokemonDetailFuture,
             builder: (context, snapshot) {
@@ -67,37 +64,45 @@ class _PokemonGridState extends State<PokemonGrid> {
                     ),
                   ),
                   Expanded(
-                    child: Center(
-                      child: SizedBox(
-                        width: 104,
-                        height: 104,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            ImageFiltered(
-                              imageFilter: ImageFilter.blur(
-                                sigmaX: 28,
-                                sigmaY: 28,
-                              ),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: glow.withValues(alpha: 0.2),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final artwork = constraints.biggest.shortestSide;
+                        return Center(
+                          child: SizedBox(
+                            width: artwork,
+                            height: artwork,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                ImageFiltered(
+                                  imageFilter: ImageFilter.blur(
+                                    sigmaX: 8,
+                                    sigmaY: 8,
+                                  ),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: glow.withValues(alpha: 0.2),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                Image.network(
+                                  pokemon.spriteUrl,
+                                  fit: BoxFit.contain,
+                                ),
+                              ],
                             ),
-                            Image.network(
-                              pokemon.spriteUrl,
-                              fit: BoxFit.contain,
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     ),
                   ),
+
                   Center(
                     child: Text(
                       pokemon.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pokemon/extensions/string_capitalized.dart';
 import 'package:pokemon/models/pokemon_list_item.dart';
 import 'package:pokemon/services/api.dart';
+import 'package:pokemon/theme/spacing.dart';
 import 'package:pokemon/widgets/pokemon_grid.dart';
 import 'package:pokemon/widgets/section_header.dart';
 
@@ -47,10 +48,16 @@ class _PokemonTypeScreenState extends State<PokemonTypeScreen> {
               ),
               Expanded(
                 child: GridView.builder(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.screen,
+                    AppSpacing.belowTitle,
+                    AppSpacing.screen,
+                    AppSpacing.betweenSections,
+                  ),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
+                    mainAxisSpacing: AppSpacing.gridGap,
+                    crossAxisSpacing: AppSpacing.gridGap,
                     childAspectRatio: 1,
                   ),
                   itemCount: pokemonByType.length,
