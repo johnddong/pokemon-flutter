@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pokemon/extensions/string_capitalized.dart';
 import 'package:pokemon/models/pokemon_list_item.dart';
 import 'package:pokemon/services/api.dart';
-import 'package:pokemon/widgets/pokemon_tile.dart';
+import 'package:pokemon/widgets/pokemon_grid.dart';
 import 'package:pokemon/widgets/section_header.dart';
 
 class PokemonTypeScreen extends StatefulWidget {
@@ -46,10 +46,16 @@ class _PokemonTypeScreenState extends State<PokemonTypeScreen> {
                 trailing: '${pokemonByType.length} Pokémon',
               ),
               Expanded(
-                child: ListView.builder(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1,
+                  ),
                   itemCount: pokemonByType.length,
                   itemBuilder: (context, index) {
-                    return PokemonTile(pokemon: pokemonByType[index]);
+                    return PokemonGrid(pokemon: pokemonByType[index]);
                   },
                 ),
               ),
