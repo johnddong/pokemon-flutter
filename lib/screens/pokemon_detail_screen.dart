@@ -5,9 +5,10 @@ import 'package:pokemon/extensions/string_capitalized.dart';
 import 'package:pokemon/theme/type_colors.dart';
 
 class PokemonDetailScreen extends StatefulWidget {
-  const PokemonDetailScreen({super.key, required this.pokemonName});
+  const PokemonDetailScreen({super.key, required this.idOrName, this.title});
 
-  final String pokemonName;
+  final String idOrName;
+  final String? title;
 
   @override
   State<PokemonDetailScreen> createState() => _PokemonDetailScreenState();
@@ -38,13 +39,15 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _pokemonFuture = PokemonApi.getPokemonByName(widget.pokemonName);
+    _pokemonFuture = PokemonApi.getPokemonByName(widget.idOrName);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.pokemonName.capitalized)),
+      appBar: AppBar(
+        title: Text((widget.title ?? widget.idOrName).capitalized),
+      ),
       body: FutureBuilder<Pokemon>(
         future: _pokemonFuture,
         builder: (context, snapshot) {
