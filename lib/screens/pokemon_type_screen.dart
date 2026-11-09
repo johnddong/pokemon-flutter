@@ -46,11 +46,12 @@ class _PokemonTypeScreenState extends State<PokemonTypeScreen> {
                 subtitle: 'By Pokédex number',
                 trailing: '${pokemonByType.length} Pokémon',
               ),
+              SizedBox(height: AppSpacing.belowTitle),
               Expanded(
                 child: GridView.builder(
                   padding: EdgeInsets.fromLTRB(
                     AppSpacing.screen,
-                    AppSpacing.belowTitle,
+                    0,
                     AppSpacing.screen,
                     AppSpacing.betweenSections,
                   ),

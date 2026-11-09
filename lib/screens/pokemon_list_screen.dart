@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pokemon/extensions/string_capitalized.dart';
+import 'package:pokemon/models/generation_info.dart';
 import 'package:pokemon/models/type_info.dart';
+import 'package:pokemon/screens/pokemon_generation_screen.dart';
 import 'package:pokemon/screens/pokemon_type_screen.dart';
+import 'package:pokemon/theme/region_starters.dart';
 import 'package:pokemon/theme/spacing.dart';
 import 'package:pokemon/theme/type_colors.dart';
 import 'package:pokemon/theme/type_mascots.dart';
@@ -29,10 +32,19 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
     if (q.isEmpty) return;
 
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => PokemonDetailScreen(pokemonName: q),
-      ),
+      MaterialPageRoute(builder: (context) => PokemonDetailScreen(idOrName: q)),
     );
+  }
+
+  // search query
+  List<PokemonListItem> _catalog = [];
+  Future<void> _loadNames() async {
+    try {
+      final catalog = await PokemonApi.getAllPokemon();
+      setState(() {
+        _catalog = catalog;
+      });
+    } catch (_) {}
   }
 
   // load all types
@@ -58,13 +70,13 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
     } catch (_) {}
   }
 
-  // search query
-  List<PokemonListItem> _catalog = [];
-  Future<void> _loadNames() async {
+  // load all generations
+  List<GenerationInfo> _generations = [];
+  Future<void> _loadGenerations() async {
     try {
-      final catalog = await PokemonApi.getAllPokemon();
+      final generations = await PokemonApi.getAllGenerations();
       setState(() {
-        _catalog = catalog;
+        _generations = generations;
       });
     } catch (_) {}
   }
@@ -109,6 +121,7 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
   void initState() {
     super.initState();
     _loadTypes();
+    _loadGenerations();
     _loadNames();
     _loadMore();
   }
@@ -204,6 +217,90 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
                     ),
                   ),
               ],
+            ),
+          ),
+          // By region section
+          SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'By region',
+              subtitle:
+                  '${_generations.length} generations, each with its own starters',
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screen,
+              AppSpacing.belowTitle,
+              AppSpacing.screen,
+              AppSpacing.betweenSections,
+            ),
+            sliver: SliverList.separated(
+              itemCount: _generations.length,
+              separatorBuilder: (context, index) =>
+                  const SizedBox(height: AppSpacing.gridGap),
+              itemBuilder: (context, index) {
+                final generation = _generations[index];
+                return Material(
+                  color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              PokemonGenerationScreen(generation: generation),
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 20,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            generation.generationLabel,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  generation.displayName,
+                                  style: Theme.of(context).textTheme.titleLarge
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                              for (final (i, id) in regionStarterId(
+                                generation.id,
+                              ).indexed)
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    left: i == 0 ? 0 : 10,
+                                  ),
+                                  child: SizedBox(
+                                    width: 48,
+                                    height: 48,
+                                    child: Transform.scale(
+                                      scale: 1.35,
+                                      child: Image.network(
+                                        starterSpriteUrl(id),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          Text('${generation.count} Pokémon'),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           // All Pokémon section
