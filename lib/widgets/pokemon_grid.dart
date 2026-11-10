@@ -21,8 +21,8 @@ class _PokemonGridState extends State<PokemonGrid> {
   @override
   void initState() {
     super.initState();
-    // fetch the pokemon details
-    _pokemonDetailFuture = PokemonApi.getPokemonByName(widget.pokemon.name);
+    // fetch the pokemon details (pass id or name both work)
+    _pokemonDetailFuture = PokemonApi.getPokemonByName('${widget.pokemon.id}');
   }
 
   @override
@@ -40,8 +40,10 @@ class _PokemonGridState extends State<PokemonGrid> {
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) =>
-                  PokemonDetailScreen(pokemonName: pokemon.name),
+              builder: (context) => PokemonDetailScreen(
+                idOrName: '${widget.pokemon.id}',
+                title: widget.pokemon.displayName,
+              ),
             ),
           );
         },

@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import 'package:pokemon/models/generation_info.dart';
 import 'dart:convert';
 import 'package:pokemon/models/pokemon_list_item.dart';
 import 'package:pokemon/models/pokemon.dart';
@@ -117,6 +118,29 @@ class PokemonApi {
     final pokemon = json.decode(response.body)['pokemon'] as List;
 
     return pokemon.length;
+  }
+
+  // get one generation (region name, count, species[name, url])
+  static Future<GenerationInfo> getGeneration(int generationId) async {
+    final response = await http.get(
+      Uri.https(host, '/api/v2/generation/$generationId'),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load generations: ${response.statusCode}');
+    }
+
+    final Map<String, dynamic> data = json.decode(response.body);
+
+    return GenerationInfo.fromJson(data);
+  }
+
+  // get all generations 1-9 in parallel
+  static Future<List<GenerationInfo>> getAllGenerations() {
+    return Future.wait([
+      for (var id = 1; id <= GenerationInfo.generationCount; id++)
+        getGeneration(id),
+    ]);
   }
 }
 
