@@ -59,7 +59,7 @@ class SearchField extends StatelessWidget {
               focusNode: focusNode,
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
-                hintText: 'Search Pokémon',
+                hintText: 'Search by name or dex number',
                 border: InputBorder.none,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: controller.text.isEmpty
