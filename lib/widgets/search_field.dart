@@ -7,6 +7,11 @@ class SearchField extends StatelessWidget {
   final List<PokemonListItem> catalog;
   final ValueChanged<String> onSearch;
 
+  // match search q by both name and id
+  bool _matches(PokemonListItem option, String q) {
+    return option.name.contains(q) || option.id.toString().contains(q);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Autocomplete<PokemonListItem>(
@@ -15,7 +20,7 @@ class SearchField extends StatelessWidget {
       optionsBuilder: (value) {
         final q = value.text.trim().toLowerCase();
         if (q.isEmpty) return const Iterable.empty();
-        return catalog.where((option) => option.name.contains(q)).take(20);
+        return catalog.where((option) => _matches(option, q)).take(20);
       },
       onSelected: (option) => onSearch(option.name),
       optionsViewBuilder: (context, onSelected, options) {
@@ -38,6 +43,7 @@ class SearchField extends StatelessWidget {
                       height: 40,
                     ),
                     title: Text(option.displayName),
+                    trailing: Text('#${option.id.toString().padLeft(4, '0')}'),
                     onTap: () => onSelected(option),
                   );
                 },
@@ -74,13 +80,13 @@ class SearchField extends StatelessWidget {
                 final hasOptions =
                     q.isNotEmpty &&
                     catalog
-                        .where((option) => option.name.contains(q))
+                        .where((option) => _matches(option, q))
                         .take(20)
                         .isNotEmpty;
                 if (hasOptions) {
-                  onFieldSubmitted(); // highlighted / first match
+                  onFieldSubmitted(); // match found
                 } else {
-                  onSearch(value); // typed text, even if not in the dropdown
+                  onSearch(value); // match not found
                 }
               },
             );
