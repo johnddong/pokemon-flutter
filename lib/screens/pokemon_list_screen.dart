@@ -26,14 +26,24 @@ class PokemonListScreen extends StatefulWidget {
 }
 
 class _PokemonListScreenState extends State<PokemonListScreen> {
-  // search
+  // search fn
+  int _searchFieldKey = 0; // force rebuild of search field
   void _search(String query) {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return;
 
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => PokemonDetailScreen(idOrName: q)),
-    );
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (context) => PokemonDetailScreen(idOrName: q),
+          ),
+        )
+        .then((_) {
+          if (!mounted) return;
+          setState(() {
+            _searchFieldKey++;
+          });
+        });
   }
 
   // search query
@@ -83,6 +93,8 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
 
   // load more pokémon
   final List<PokemonListItem> _pokemon = [];
+  // placeholder for By type section
+  static const int _typePlaceholderCount = 18;
   static const int _pageSize = 10;
   int _offset = 0;
   int _count = 0;
@@ -128,20 +140,23 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Widget body;
-
-    if (_pokemon.isEmpty && _isLoading) {
-      body = const Center(child: CircularProgressIndicator());
-    } else if (_error != null && _pokemon.isEmpty) {
-      body = Center(child: Text('Could not load Pokémon'));
-    } else {
-      body = CustomScrollView(
+    return Scaffold(
+      appBar: AppBar(
+        // search autocomplete
+        title: SearchField(
+          key: ValueKey(_searchFieldKey),
+          catalog: _catalog,
+          onSearch: _search,
+        ),
+      ),
+      body: CustomScrollView(
         slivers: [
           // By type section
           SliverToBoxAdapter(
             child: SectionHeader(
               title: 'By type',
-              subtitle: '${_types.length} types',
+              subtitle:
+                  '${_types.isEmpty ? _typePlaceholderCount : _types.length} types',
             ),
           ),
           SliverPadding(
@@ -157,65 +172,88 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
               crossAxisSpacing: AppSpacing.gridGap,
               childAspectRatio: 1.8,
               children: [
-                for (final type in _types)
-                  Material(
-                    color: Color.lerp(typeColor(type.name), Colors.white, 0.82),
-                    elevation: 0,
-                    shadowColor: Colors.black26,
-                    borderRadius: BorderRadius.circular(16),
-                    child: InkWell(
+                if (_types.isEmpty)
+                  for (var i = 0; i < _typePlaceholderCount; i++)
+                    Material(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerLowest,
                       borderRadius: BorderRadius.circular(16),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                PokemonTypeScreen(type: type.name),
-                          ),
-                        );
-                      },
-                      child: Stack(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  type.name.capitalized,
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurface,
-                                      ),
-                                ),
-                                Text(
-                                  '${type.count} Pokémon',
-                                  style: Theme.of(context).textTheme.bodyMedium
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
-                                ),
-                              ],
+                    )
+                else
+                  for (final type in _types)
+                    Material(
+                      color: Color.lerp(
+                        typeColor(type.name),
+                        Colors.white,
+                        .82,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => PokemonTypeScreen(
+                                type: type.name,
+                                typeInfo: _types,
+                              ),
                             ),
-                          ),
-                          Positioned(
-                            right: 4,
-                            bottom: 0,
-                            child: Image.network(
-                              typeMascotUrl(type.name),
-                              width: 88,
-                              height: 88,
+                          );
+                        },
+                        child: Stack(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                14,
+                                12,
+                                12,
+                                12,
+                              ),
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    type.name.capitalized,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
+                                        ),
+                                  ),
+                                  Text(
+                                    '${type.count} Pokémon',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                            Positioned(
+                              right: 4,
+                              bottom: 0,
+                              child: Image.network(
+                                typeMascotUrl(type.name),
+                                width: 88,
+                                height: 88,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
               ],
             ),
           ),
@@ -223,8 +261,9 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
           SliverToBoxAdapter(
             child: SectionHeader(
               title: 'By region',
-              subtitle:
-                  '${_generations.length} generations, each with its own starters',
+              subtitle: _generations.isEmpty
+                  ? null
+                  : '${_generations.length} generations, each with its own starters',
             ),
           ),
           SliverPadding(
@@ -240,6 +279,7 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
                   const SizedBox(height: AppSpacing.gridGap),
               itemBuilder: (context, index) {
                 final generation = _generations[index];
+
                 return Material(
                   color: Theme.of(context).colorScheme.surfaceContainerLowest,
                   borderRadius: BorderRadius.circular(16),
@@ -247,8 +287,10 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) =>
-                              PokemonGenerationScreen(generation: generation),
+                          builder: (context) => PokemonGenerationScreen(
+                            generation: generation,
+                            generations: _generations,
+                          ),
                         ),
                       );
                     },
@@ -308,29 +350,38 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
             child: SectionHeader(
               title: 'All Pokémon',
               subtitle: 'By Pokédex number',
-              trailing:
-                  '${NumberFormat('#,###', 'en_US').format(_count)} Pokemon',
+              trailing: _count == 0
+                  ? null
+                  : '${NumberFormat('#,###', 'en_US').format(_count)} Pokemon',
             ),
           ),
-          SliverPadding(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.screen,
-              AppSpacing.belowTitle,
-              AppSpacing.screen,
-              0,
-            ),
-            sliver: SliverGrid.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: AppSpacing.gridGap,
-                crossAxisSpacing: AppSpacing.gridGap,
-                childAspectRatio: 1,
+          if (_error != null && _pokemon.isEmpty)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: Text('Could not load Pokémon')),
               ),
-              itemCount: _pokemon.length,
-              itemBuilder: (context, index) =>
-                  PokemonGrid(pokemon: _pokemon[index]),
+            )
+          else
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.belowTitle,
+                AppSpacing.screen,
+                0,
+              ),
+              sliver: SliverGrid.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: AppSpacing.gridGap,
+                  crossAxisSpacing: AppSpacing.gridGap,
+                  childAspectRatio: 1,
+                ),
+                itemCount: _pokemon.length,
+                itemBuilder: (context, index) =>
+                    PokemonGrid(pokemon: _pokemon[index]),
+              ),
             ),
-          ),
           // Load more button
           if (_hasMore)
             SliverToBoxAdapter(
@@ -352,15 +403,7 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
               ),
             ),
         ],
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        // search autocomplete
-        title: SearchField(catalog: _catalog, onSearch: _search),
       ),
-      body: body,
     );
   }
 }
