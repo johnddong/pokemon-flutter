@@ -33,7 +33,7 @@ class _PokemonGridState extends State<PokemonGrid> {
     return Card(
       margin: EdgeInsets.zero,
       elevation: 0,
-      color: Theme.of(context).colorScheme.surfaceContainerLowest,
+      color: cardSurface(Theme.of(context).colorScheme),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),

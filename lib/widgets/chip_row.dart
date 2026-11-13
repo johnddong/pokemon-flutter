@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pokemon/extensions/string_capitalized.dart';
 import 'package:pokemon/theme/spacing.dart';
+import 'package:pokemon/theme/type_colors.dart';
 
 class ChipRow extends StatelessWidget {
   const ChipRow({
@@ -37,7 +38,7 @@ class ChipRow extends StatelessWidget {
             final color = colorOf?.call(item);
             final isSelected = item == selected;
             final colorScheme = Theme.of(context).colorScheme;
-            final fill = colorScheme.surfaceContainerLowest;
+            final fill = cardSurface(colorScheme);
             final accent = color ?? colorScheme.onSurface;
 
             return ChoiceChip(

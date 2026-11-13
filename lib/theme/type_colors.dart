@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// by type color
 Color typeColor(String type) {
   return switch (type) {
     'normal' => const Color(0xFFA8A77A),
@@ -22,4 +23,11 @@ Color typeColor(String type) {
     'fairy' => const Color(0xFFD685AD),
     _ => Colors.grey,
   };
+}
+
+// card surface color for light and dark modes
+Color cardSurface(ColorScheme scheme) {
+  return scheme.brightness == Brightness.dark
+      ? scheme.surfaceContainerLow
+      : scheme.surfaceContainerLowest; // light mode
 }
