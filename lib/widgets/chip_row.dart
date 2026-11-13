@@ -33,32 +33,32 @@ class ChipRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
           itemCount: items.length,
           separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.gridGap),
-          itemBuilder: (context, index) {
-            final item = items[index];
-            final color = colorOf?.call(item);
-            final isSelected = item == selected;
-            final colorScheme = Theme.of(context).colorScheme;
-            final fill = cardSurface(colorScheme);
-            final accent = color ?? colorScheme.onSurface;
-
-            return ChoiceChip(
-              avatar: color == null
-                  ? null
-                  : Icon(Icons.circle, size: 10, color: color),
-              label: Text(item.capitalized),
-              selected: isSelected,
-              showCheckmark: false,
-              selectedColor: fill,
-              backgroundColor: fill,
-              labelStyle: TextStyle(
-                color: isSelected ? accent : colorScheme.onSurfaceVariant,
-              ),
-              side: BorderSide(color: isSelected ? accent : fill),
-              onSelected: isSelected ? (_) {} : (_) => onSelected(item),
-            );
-          },
+          itemBuilder: (context, index) => _chip(context, items[index]),
         ),
       ),
+    );
+  }
+
+  // chip widget
+  Widget _chip(BuildContext context, String item) {
+    final color = colorOf?.call(item);
+    final isSelected = item == selected;
+    final colorScheme = Theme.of(context).colorScheme;
+    final fill = cardSurface(colorScheme);
+    final accent = color ?? colorScheme.onSurface;
+
+    return ChoiceChip(
+      avatar: color == null ? null : Icon(Icons.circle, size: 10, color: color),
+      label: Text(item.capitalized),
+      selected: isSelected,
+      showCheckmark: false,
+      selectedColor: fill,
+      backgroundColor: fill,
+      labelStyle: TextStyle(
+        color: isSelected ? accent : colorScheme.onSurfaceVariant,
+      ),
+      side: BorderSide(color: isSelected ? accent : fill),
+      onSelected: isSelected ? (_) {} : (_) => onSelected(item),
     );
   }
 }
