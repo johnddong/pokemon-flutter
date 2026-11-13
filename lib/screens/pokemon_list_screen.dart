@@ -17,9 +17,14 @@ import 'package:pokemon/models/pokemon_list_item.dart';
 import 'package:pokemon/widgets/search_field.dart';
 
 class PokemonListScreen extends StatefulWidget {
-  const PokemonListScreen({super.key, required this.title});
+  const PokemonListScreen({
+    super.key,
+    required this.title,
+    required this.onToggleTheme,
+  });
 
   final String title;
+  final VoidCallback onToggleTheme;
 
   @override
   State<PokemonListScreen> createState() => _PokemonListScreenState();
@@ -148,6 +153,15 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
           catalog: _catalog,
           onSearch: _search,
         ),
+        actions: [
+          // toggle theme
+          IconButton(
+            onPressed: widget.onToggleTheme,
+            icon: Theme.of(context).brightness == Brightness.dark
+                ? const Icon(Icons.light_mode)
+                : const Icon(Icons.dark_mode),
+          ),
+        ],
       ),
       body: CustomScrollView(
         slivers: [
@@ -172,88 +186,15 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
               crossAxisSpacing: AppSpacing.gridGap,
               childAspectRatio: 1.8,
               children: [
+                // placeholder for By type section
                 if (_types.isEmpty)
                   for (var i = 0; i < _typePlaceholderCount; i++)
                     Material(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerLowest,
+                      color: cardSurface(Theme.of(context).colorScheme),
                       borderRadius: BorderRadius.circular(16),
                     )
                 else
-                  for (final type in _types)
-                    Material(
-                      color: Color.lerp(
-                        typeColor(type.name),
-                        Colors.white,
-                        .82,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => PokemonTypeScreen(
-                                type: type.name,
-                                typeInfo: _types,
-                              ),
-                            ),
-                          );
-                        },
-                        child: Stack(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                14,
-                                12,
-                                12,
-                                12,
-                              ),
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    type.name.capitalized,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurface,
-                                        ),
-                                  ),
-                                  Text(
-                                    '${type.count} Pokémon',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Positioned(
-                              right: 4,
-                              bottom: 0,
-                              child: Image.network(
-                                typeMascotUrl(type.name),
-                                width: 88,
-                                height: 88,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  for (final type in _types) _typeCard(type),
               ],
             ),
           ),
@@ -281,7 +222,7 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
                 final generation = _generations[index];
 
                 return Material(
-                  color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                  color: cardSurface(Theme.of(context).colorScheme),
                   borderRadius: BorderRadius.circular(16),
                   child: InkWell(
                     onTap: () {
@@ -403,6 +344,76 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  // type card widget
+  Widget _typeCard(TypeInfo type) {
+    final scheme = Theme.of(context).colorScheme;
+    final hue = typeColor(type.name);
+
+    return Material(
+      color: cardSurface(scheme),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) =>
+                  PokemonTypeScreen(type: type.name, typeInfo: _types),
+            ),
+          );
+        },
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                hue.withValues(alpha: 0.2), // grow at title
+                hue.withValues(alpha: 0), // fade at sprite
+              ],
+            ),
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      type.name.capitalized,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      '${type.count} Pokémon',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                right: 4,
+                bottom: 0,
+                child: Image.network(
+                  typeMascotUrl(type.name),
+                  width: 88,
+                  height: 88,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

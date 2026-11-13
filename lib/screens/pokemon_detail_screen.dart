@@ -112,7 +112,9 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
                       Chip(
                         label: Text(type.capitalized),
                         backgroundColor: typeColor(type),
-                        labelStyle: TextStyle(color: Colors.white),
+                        labelStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                         side: BorderSide(color: typeColor(type)),
                       ),
                   ],

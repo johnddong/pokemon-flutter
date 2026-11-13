@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pokemon/models/pokemon_list_item.dart';
+import 'package:pokemon/theme/type_colors.dart';
 
 class SearchField extends StatelessWidget {
   const SearchField({super.key, required this.catalog, required this.onSearch});
@@ -27,6 +28,7 @@ class SearchField extends StatelessWidget {
         return Align(
           alignment: Alignment.topLeft,
           child: Material(
+            color: cardSurface(Theme.of(context).colorScheme),
             elevation: 4,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 400),
