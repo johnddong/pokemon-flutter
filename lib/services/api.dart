@@ -1,8 +1,10 @@
 import 'package:http/http.dart' as http;
+import 'package:pokemon/models/evolution_chain.dart';
 import 'package:pokemon/models/generation_info.dart';
 import 'dart:convert';
 import 'package:pokemon/models/pokemon_list_item.dart';
 import 'package:pokemon/models/pokemon.dart';
+import 'package:pokemon/models/type_info.dart';
 
 class PokemonApi {
   static const int pageSize = 5;
@@ -120,6 +122,24 @@ class PokemonApi {
     return pokemon.length;
   }
 
+  // get type info list <name, count> sorted by count descending
+  static Future<List<TypeInfo>> getTypeInfoList() async {
+    // get all types
+    final types = await PokemonApi.getAllTypes();
+    // get pokemon count by each type
+    final counts = await Future.wait(
+      types.map(PokemonApi.getPokemonCountByType),
+    );
+    // 1. create a list of TypeInfo objects
+    // 2. sort the list by count in descending order
+    final sortedTypes = [
+      for (final (index, name) in types.indexed)
+        TypeInfo(name: name, count: counts[index]),
+    ]..sort((a, b) => b.count.compareTo(a.count));
+
+    return sortedTypes;
+  }
+
   // get one generation (region name, count, species[name, url])
   static Future<GenerationInfo> getGeneration(int generationId) async {
     final response = await http.get(
@@ -141,6 +161,72 @@ class PokemonApi {
       for (var id = 1; id <= GenerationInfo.generationCount; id++)
         getGeneration(id),
     ]);
+  }
+
+  // get evolution chain
+  static Future<List<EvolutionChainInfo>> getEvolutionChain(int id) async {
+    final response = await http.get(
+      Uri.https(host, '/api/v2/evolution-chain/$id'),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load evolution chain: ${response.statusCode}');
+    }
+
+    final Map<String, dynamic> data = json.decode(response.body);
+
+    return EvolutionChainInfo.flattenEvolutionChain(
+      data['chain'] as Map<String, dynamic>,
+    );
+  }
+
+  // get pokemon species (flavor text, generation info)
+  static Future<
+    ({
+      String flavorText,
+      GenerationInfo generation,
+      List<EvolutionChainInfo> evolutionChain,
+    })
+  >
+  getSpecies(int id) async {
+    final response = await http.get(
+      Uri.https(host, '/api/v2/pokemon-species/$id'),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load pokemon species: ${response.statusCode}');
+    }
+
+    final Map<String, dynamic> data = json.decode(response.body);
+    final flavorTextEntries = data['flavor_text_entries'] as List;
+
+    final english = flavorTextEntries.where(
+      (entry) => (entry as Map)['language']['name'] == 'en',
+    );
+
+    final flavorText = english.last['flavor_text'] as String;
+
+    // get the generation info
+    final url = data['generation']['url'] as String;
+    final generationId = int.parse(
+      url.split('/').where((part) => part.isNotEmpty).last,
+    );
+
+    final generationInfo = await getGeneration(generationId);
+
+    // get the evolution chain
+    final evolutionChainUrl = data['evolution_chain']['url'] as String;
+    final evolutionChainId = int.parse(
+      evolutionChainUrl.split('/').where((part) => part.isNotEmpty).last,
+    );
+
+    final evolutionChainInfo = await getEvolutionChain(evolutionChainId);
+
+    return (
+      flavorText: flavorText.replaceAll('\n', ' '),
+      generation: generationInfo,
+      evolutionChain: evolutionChainInfo,
+    );
   }
 }
 

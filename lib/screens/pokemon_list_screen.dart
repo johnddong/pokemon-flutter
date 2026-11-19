@@ -66,19 +66,8 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
   List<TypeInfo> _types = [];
   Future<void> _loadTypes() async {
     try {
-      // get all types
-      final types = await PokemonApi.getAllTypes();
-      // get pokemon count by each type
-      final counts = await Future.wait(
-        types.map(PokemonApi.getPokemonCountByType),
-      );
-      // 1. create a list of TypeInfo objects
-      // 2. sort the list by count in descending order
-      final sortedTypes = [
-        for (final (index, name) in types.indexed)
-          TypeInfo(name: name, count: counts[index]),
-      ]..sort((a, b) => b.count.compareTo(a.count));
-
+      final sortedTypes = await PokemonApi.getTypeInfoList();
+      if (!mounted) return;
       setState(() {
         _types = sortedTypes;
       });
