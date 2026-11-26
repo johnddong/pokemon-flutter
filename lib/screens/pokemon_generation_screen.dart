@@ -1,19 +1,21 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:pokemon/models/generation_info.dart';
+import 'package:pokemon/services/api.dart';
 import 'package:pokemon/theme/spacing.dart';
 import 'package:pokemon/widgets/chip_row.dart';
 import 'package:pokemon/widgets/pokemon_grid.dart';
 import 'package:pokemon/widgets/section_header.dart';
+import 'package:pokemon/widgets/skeletons/chipRowSkeleton.dart';
 
 class PokemonGenerationScreen extends StatefulWidget {
   const PokemonGenerationScreen({
     super.key,
     required this.generation,
-    required this.generations,
+    this.generations,
   });
 
   final GenerationInfo generation;
-  final List<GenerationInfo> generations;
+  final List<GenerationInfo>? generations;
 
   @override
   State<PokemonGenerationScreen> createState() =>
@@ -22,11 +24,17 @@ class PokemonGenerationScreen extends StatefulWidget {
 
 class _PokemonGenerationScreenState extends State<PokemonGenerationScreen> {
   late GenerationInfo _selectedGeneration;
+  late Future<List<GenerationInfo>> _generationsFuture;
 
   @override
   void initState() {
     super.initState();
+    // selected generation
     _selectedGeneration = widget.generation;
+    // generations list
+    _generationsFuture = widget.generations != null
+        ? Future.value(widget.generations!)
+        : PokemonApi.getAllGenerations();
   }
 
   @override
@@ -38,23 +46,57 @@ class _PokemonGenerationScreenState extends State<PokemonGenerationScreen> {
         children: [
           // Other regions
           SectionHeader(title: 'Other regions'),
-          ChipRow(
-            items: widget.generations.map((g) => g.mainRegion).toList(),
-            selected: _selectedGeneration.mainRegion,
-            onSelected: (region) {
-              setState(() {
-                _selectedGeneration = widget.generations.firstWhere(
-                  (g) => g.mainRegion == region,
+          FutureBuilder<List<GenerationInfo>>(
+            future: _generationsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return SizedBox(
+                  height: 128,
+                  child: Center(child: Text('Could not load generations')),
                 );
-              });
+              }
+
+              // ChipRow & SectionHeader placeholder
+              if (!snapshot.hasData) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const ChipRowSkeleton(),
+                    SectionHeader(
+                      title: '${_selectedGeneration.displayName} Pokémon',
+                      subtitle: 'By Pokédex number',
+                      trailing: null,
+                    ),
+                  ],
+                );
+              }
+
+              final generations = snapshot.data!;
+
+              return Column(
+                children: [
+                  ChipRow(
+                    items: generations.map((g) => g.mainRegion).toList(),
+                    selected: _selectedGeneration.mainRegion,
+                    onSelected: (region) {
+                      setState(() {
+                        _selectedGeneration = generations.firstWhere(
+                          (g) => g.mainRegion == region,
+                        );
+                      });
+                    },
+                  ),
+                  SectionHeader(
+                    title: 'Pokémon from ${_selectedGeneration.displayName}',
+                    subtitle: 'By Pokédex number',
+                    trailing: '${_selectedGeneration.count} Pokémon',
+                  ),
+                ],
+              );
             },
           ),
 
-          SectionHeader(
-            title: 'Pokémon from ${_selectedGeneration.displayName}',
-            subtitle: 'By Pokédex number',
-            trailing: '${_selectedGeneration.count} Pokémon',
-          ),
           SizedBox(height: AppSpacing.belowTitle),
           Expanded(
             child: GridView.builder(

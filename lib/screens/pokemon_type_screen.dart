@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:pokemon/extensions/string_capitalized.dart';
 import 'package:pokemon/models/pokemon_list_item.dart';
 import 'package:pokemon/models/type_info.dart';
@@ -8,16 +8,13 @@ import 'package:pokemon/theme/type_colors.dart';
 import 'package:pokemon/widgets/pokemon_grid.dart';
 import 'package:pokemon/widgets/section_header.dart';
 import 'package:pokemon/widgets/chip_row.dart';
+import 'package:pokemon/widgets/skeletons/chipRowSkeleton.dart';
 
 class PokemonTypeScreen extends StatefulWidget {
-  const PokemonTypeScreen({
-    super.key,
-    required this.type,
-    required this.typeInfo,
-  });
+  const PokemonTypeScreen({super.key, required this.type, this.typeInfo});
 
   final String type;
-  final List<TypeInfo> typeInfo;
+  final List<TypeInfo>? typeInfo;
 
   @override
   State<PokemonTypeScreen> createState() => _PokemonTypeScreenState();
@@ -26,22 +23,23 @@ class PokemonTypeScreen extends StatefulWidget {
 class _PokemonTypeScreenState extends State<PokemonTypeScreen> {
   late String _selectedType;
   late Future<List<PokemonListItem>> _pokemonByTypeFuture;
+  late Future<List<TypeInfo>> _typesFuture;
 
   @override
   void initState() {
     super.initState();
     // selected chip
     _selectedType = widget.type;
+    // pokemon by type list
     _pokemonByTypeFuture = PokemonApi.getPokemonByType(_selectedType);
+    // types list
+    _typesFuture = widget.typeInfo != null
+        ? Future.value(widget.typeInfo!)
+        : PokemonApi.getTypeInfoList();
   }
 
   @override
   Widget build(BuildContext context) {
-    // selected type count
-    final selectedTypeCount = widget.typeInfo
-        .firstWhere((type) => type.name == _selectedType)
-        .count;
-
     return Scaffold(
       appBar: AppBar(title: Text('By type')),
       body: Column(
@@ -49,21 +47,61 @@ class _PokemonTypeScreenState extends State<PokemonTypeScreen> {
         children: [
           // Other types
           SectionHeader(title: 'Other types'),
-          ChipRow(
-            items: widget.typeInfo.map((type) => type.name).toList(),
-            selected: _selectedType,
-            onSelected: (type) {
-              setState(() {
-                _selectedType = type;
-                _pokemonByTypeFuture = PokemonApi.getPokemonByType(type);
-              });
+          FutureBuilder<List<TypeInfo>>(
+            future: _typesFuture,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return SizedBox(
+                  height: 128,
+                  child: const Center(child: Text('Could not load types')),
+                );
+              }
+
+              // ChipRow & SectionHeader placeholder
+              if (!snapshot.hasData) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const ChipRowSkeleton(),
+                    SectionHeader(
+                      title: '${_selectedType.capitalized} Pokémon',
+                      subtitle: 'By Pokédex number',
+                      trailing: null,
+                    ),
+                  ],
+                );
+              }
+
+              final types = snapshot.data!;
+              // selected type count
+              final selectedTypeCount = types
+                  .firstWhere((type) => type.name == _selectedType)
+                  .count;
+
+              return Column(
+                children: [
+                  ChipRow(
+                    items: types.map((type) => type.name).toList(),
+                    selected: _selectedType,
+                    onSelected: (type) {
+                      setState(() {
+                        _selectedType = type;
+                        _pokemonByTypeFuture = PokemonApi.getPokemonByType(
+                          type,
+                        );
+                      });
+                    },
+                    colorOf: typeColor,
+                  ),
+                  SectionHeader(
+                    title: '${_selectedType.capitalized} Pokémon',
+                    subtitle: 'By Pokédex number',
+                    trailing: '$selectedTypeCount Pokémon',
+                  ),
+                ],
+              );
             },
-            colorOf: typeColor,
-          ),
-          SectionHeader(
-            title: '${_selectedType.capitalized} Pokémon',
-            subtitle: 'By Pokédex number',
-            trailing: '$selectedTypeCount Pokémon',
           ),
           SizedBox(height: AppSpacing.belowTitle),
           Expanded(
