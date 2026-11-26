@@ -164,7 +164,7 @@ class PokemonApi {
   }
 
   // get evolution chain
-  static Future<List<EvolutionChainInfo>> getEvolutionChain(int id) async {
+  static Future<EvolutionChainInfo> getEvolutionChain(int id) async {
     final response = await http.get(
       Uri.https(host, '/api/v2/evolution-chain/$id'),
     );
@@ -175,9 +175,11 @@ class PokemonApi {
 
     final Map<String, dynamic> data = json.decode(response.body);
 
-    return EvolutionChainInfo.flattenEvolutionChain(
-      data['chain'] as Map<String, dynamic>,
-    );
+    // return EvolutionChainInfo.flattenEvolutionChain(
+    //   data['chain'] as Map<String, dynamic>,
+    //);
+
+    return EvolutionChainInfo.fromChain(data['chain'] as Map<String, dynamic>);
   }
 
   // get pokemon species (flavor text, generation info)
@@ -185,7 +187,7 @@ class PokemonApi {
     ({
       String flavorText,
       GenerationInfo generation,
-      List<EvolutionChainInfo> evolutionChain,
+      EvolutionChainInfo evolutionChain,
     })
   >
   getSpecies(int id) async {

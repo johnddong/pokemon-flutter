@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:pokemon/extensions/string_capitalized.dart';
 import 'package:pokemon/models/generation_info.dart';

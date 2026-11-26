@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:pokemon/models/generation_info.dart';
 import 'package:pokemon/services/api.dart';
 import 'package:pokemon/theme/spacing.dart';
-import 'package:pokemon/theme/type_colors.dart';
 import 'package:pokemon/widgets/chip_row.dart';
 import 'package:pokemon/widgets/pokemon_grid.dart';
 import 'package:pokemon/widgets/section_header.dart';

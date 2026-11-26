@@ -3,8 +3,13 @@ import 'package:pokemon/extensions/string_capitalized.dart';
 class EvolutionChainInfo {
   final String species;
   final String url;
+  final List<EvolutionChainInfo> evolvesTo;
 
-  EvolutionChainInfo({required this.url, required this.species});
+  EvolutionChainInfo({
+    required this.url,
+    required this.species,
+    this.evolvesTo = const [],
+  });
 
   String get displayName => species.capitalized;
 
@@ -13,32 +18,41 @@ class EvolutionChainInfo {
   String get spriteUrl =>
       'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png';
 
-  factory EvolutionChainInfo.fromSpecies(Map<String, dynamic> json) {
-    return EvolutionChainInfo(
-      species: json['name'] as String,
-      url: json['url'] as String,
-    );
-  }
+  // no evolution
+  bool get isLeaf => evolvesTo.isEmpty;
+  // more than one possible evolution
+  bool get isBranch => evolvesTo.length > 1;
 
-  static List<EvolutionChainInfo> flattenEvolutionChain(
-    Map<String, dynamic> chain,
-  ) {
-    final flattenedSpecies = [
-      EvolutionChainInfo.fromSpecies(chain['species'] as Map<String, dynamic>),
-    ];
+  // stage label: 'none' | 'first' | 'second' | 'third'
+  String stageLabel(EvolutionChainInfo root, String name) {
+    if (root.isLeaf) return 'none';
 
-    final evolvesTo = chain['evolves_to'] as List;
-
-    if (evolvesTo.isEmpty) return flattenedSpecies;
-
-    var result = flattenedSpecies;
-    for (final node in evolvesTo) {
-      result = [
-        ...result,
-        ...flattenEvolutionChain(node as Map<String, dynamic>),
-      ];
+    int? depth(EvolutionChainInfo n, int stage) {
+      if (n.species == name) return stage;
+      for (final c in n.evolvesTo) {
+        final d = depth(c, stage + 1);
+        if (d != null) return d;
+      }
+      return null;
     }
 
-    return result;
+    return switch (depth(root, 1)) {
+      1 => 'first',
+      2 => 'second',
+      3 => 'third',
+      _ => 'unknown',
+    };
+  }
+
+  factory EvolutionChainInfo.fromChain(Map<String, dynamic> json) {
+    final species = json['species'] as Map<String, dynamic>;
+    final next = json['evolves_to'] as List? ?? [];
+    return EvolutionChainInfo(
+      species: species['name'] as String,
+      url: species['url'] as String,
+      evolvesTo: next
+          .map((n) => EvolutionChainInfo.fromChain(n as Map<String, dynamic>))
+          .toList(),
+    );
   }
 }
