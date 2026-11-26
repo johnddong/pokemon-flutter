@@ -44,6 +44,15 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text((widget.title ?? widget.idOrName).capitalized),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home_outlined),
+            tooltip: 'Home',
+            onPressed: () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<Pokemon>(
         future: _pokemonFuture,
