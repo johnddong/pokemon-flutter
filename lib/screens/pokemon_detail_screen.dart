@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:pokemon/models/evolution_chain.dart';
+import 'package:pokemon/models/gender_info.dart';
 import 'package:pokemon/models/generation_info.dart';
 import 'package:pokemon/models/pokemon.dart';
 import 'package:pokemon/models/pokemon_stat.dart';
@@ -23,6 +24,7 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
   late Future<Pokemon> _pokemonFuture;
   late Future<
     ({
+      GenderInfo gender,
       String flavorText,
       GenerationInfo generation,
       EvolutionChainInfo evolutionChain,
@@ -90,248 +92,264 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              if (pokemon.imageUrl != null)
-                Center(
-                  child: Image.network(
-                    pokemon.imageUrl!,
-                    height: 240,
-                    fit: BoxFit.contain,
-                  ),
-                )
-              else
-                Icon(Icons.catching_pokemon, size: 120),
-              const SizedBox(height: 16),
-              Material(
-                color: cardSurface(colorScheme),
-                borderRadius: BorderRadius.circular(16),
-                clipBehavior: Clip.antiAlias,
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          gradient: LinearGradient(
-                            begin: Alignment.topRight,
-                            end: Alignment.bottomLeft,
-                            colors: [
-                              typeColor(
-                                pokemon.types.first,
-                              ).withValues(alpha: 0.20),
-                              typeColor(
-                                pokemon.types.first,
-                              ).withValues(alpha: 0.06),
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.3, 1.0],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 36,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              Stack(
+                alignment: Alignment.topCenter,
+                clipBehavior: Clip.none,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 210),
+                    child: Material(
+                      color: cardSurface(colorScheme),
+                      borderRadius: BorderRadius.circular(16),
+                      clipBehavior: Clip.antiAlias,
+                      child: Stack(
                         children: [
-                          Text(
-                            'Pokédex ${pokemon.displayId}',
-                            style: textTheme.labelSmall!.copyWith(
-                              color: colorScheme.onSurfaceVariant,
+                          Positioned.fill(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                gradient: LinearGradient(
+                                  begin: Alignment.topRight,
+                                  end: Alignment.bottomLeft,
+                                  colors: [
+                                    typeColor(
+                                      pokemon.types.first,
+                                    ).withValues(alpha: 0.20),
+                                    typeColor(
+                                      pokemon.types.first,
+                                    ).withValues(alpha: 0.06),
+                                    Colors.transparent,
+                                  ],
+                                  stops: const [0.0, 0.3, 1.0],
+                                ),
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'About ${pokemon.displayName}',
-                            style: textTheme.headlineLarge!.copyWith(
-                              fontWeight: FontWeight.w700,
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 36,
                             ),
-                          ),
-                          FutureBuilder<
-                            ({
-                              String flavorText,
-                              GenerationInfo generation,
-                              EvolutionChainInfo evolutionChain,
-                            })
-                          >(
-                            future: _speciesFuture,
-                            builder: (context, snapshot) {
-                              if (!snapshot.hasData) {
-                                return const SizedBox.shrink();
-                              }
-
-                              final data = snapshot.data!;
-                              final generation = data.generation;
-                              final evolutionChain = data.evolutionChain;
-
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 14),
-                                    // flavor text
-                                    child: Text(
-                                      data.flavorText,
-                                      style: textTheme.bodyLarge!.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Pokédex ${pokemon.displayId}',
+                                  style: textTheme.labelSmall!.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
                                   ),
-                                  const SizedBox(height: 24),
-                                  // stats
-                                  Wrap(
-                                    spacing: 16,
-                                    runSpacing: 8,
-                                    children: [
-                                      _Stat(
-                                        label: 'Type',
-                                        pokemon: pokemon,
-                                        onTypeTap: (type) =>
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    PokemonTypeScreen(
-                                                      type: type,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'About ${pokemon.displayName}',
+                                  style: textTheme.headlineLarge!.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                FutureBuilder<
+                                  ({
+                                    GenderInfo gender,
+                                    String flavorText,
+                                    GenerationInfo generation,
+                                    EvolutionChainInfo evolutionChain,
+                                  })
+                                >(
+                                  future: _speciesFuture,
+                                  builder: (context, snapshot) {
+                                    if (!snapshot.hasData) {
+                                      return const SizedBox.shrink();
+                                    }
+
+                                    final data = snapshot.data!;
+                                    final gender = data.gender;
+                                    final generation = data.generation;
+                                    final evolutionChain = data.evolutionChain;
+
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 14,
+                                          ),
+                                          // flavor text
+                                          child: Text(
+                                            data.flavorText,
+                                            style: textTheme.bodyLarge!
+                                                .copyWith(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                                ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 24),
+                                        // stats
+                                        Wrap(
+                                          spacing: 16,
+                                          runSpacing: 8,
+                                          children: [
+                                            _Stat(
+                                              label: 'Type',
+                                              pokemon: pokemon,
+                                              onTypeTap: (type) =>
+                                                  Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          PokemonTypeScreen(
+                                                            type: type,
+                                                          ),
                                                     ),
+                                                  ),
+                                            ),
+                                            _Stat(
+                                              label: 'Height',
+                                              value: pokemon.formateWithUnit(
+                                                pokemon.height / 10,
+                                                'm',
                                               ),
                                             ),
-                                      ),
-                                      _Stat(
-                                        label: 'Height',
-                                        value: pokemon.formateWithUnit(
-                                          pokemon.height / 10,
-                                          'm',
-                                        ),
-                                      ),
-                                      _Stat(
-                                        label: 'Weight',
-                                        value: pokemon.formateWithUnit(
-                                          pokemon.weight / 10,
-                                          'kg',
-                                        ),
-                                      ),
-                                      _Stat(
-                                        label: 'Generation',
-                                        generation: generation,
-                                        onGenerationTap: () =>
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    PokemonGenerationScreen(
-                                                      generation: generation,
-                                                    ),
+                                            _Stat(
+                                              label: 'Weight',
+                                              value: pokemon.formateWithUnit(
+                                                pokemon.weight / 10,
+                                                'kg',
                                               ),
                                             ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 24),
-                                  // evolution chain
-                                  _EvolutionChain(
-                                    node: evolutionChain,
-                                    currentSpecies: pokemon.name,
-                                    textTheme: textTheme,
-                                    colorScheme: colorScheme,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  // strongest stat
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.circle,
-                                        size: 10,
-                                        color: typeColor(pokemon.types.first),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      _Stat(
-                                        label: 'Strongest stat:',
-                                        value: pokemon
-                                            .strongestStat
-                                            .dispplayStatName,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 32),
-                                  // stats bar
-                                  Column(
-                                    spacing: 16,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      for (var stat in pokemon.stats) ...[
-                                        _statBar(
-                                          pokemon,
-                                          stat,
-                                          colorScheme,
-                                          textTheme,
+                                            _Stat(
+                                              label: 'Generation',
+                                              generation: generation,
+                                              onGenerationTap: () =>
+                                                  Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          PokemonGenerationScreen(
+                                                            generation:
+                                                                generation,
+                                                          ),
+                                                    ),
+                                                  ),
+                                            ),
+                                            // gender
+                                            _Stat(
+                                              label: 'Gender',
+                                              gender: gender,
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 24),
+                                        // evolution chain
+                                        _EvolutionChain(
+                                          node: evolutionChain,
+                                          currentSpecies: pokemon.name,
+                                          textTheme: textTheme,
+                                          colorScheme: colorScheme,
+                                        ),
+                                        const SizedBox(height: 20),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.circle,
+                                              size: 10,
+                                              color: typeColor(
+                                                pokemon.types.first,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            // abilities
+                                            _Stat(
+                                              label: 'Abilities:',
+                                              value: pokemon.displayAbilities,
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 32),
+                                        // stats bar
+                                        Column(
+                                          spacing: 16,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            for (var stat in pokemon.stats) ...[
+                                              _statBar(
+                                                pokemon,
+                                                stat,
+                                                colorScheme,
+                                                textTheme,
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 24,
+                                          ),
+                                          child: Divider(
+                                            thickness: 0.5,
+                                            color: colorScheme.outlineVariant,
+                                          ),
+                                        ),
+                                        // media total
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Container(
+                                                  width: 2,
+                                                  height: 14,
+                                                  decoration: BoxDecoration(
+                                                    color: colorScheme.outline,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          2,
+                                                        ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  evolutionChain.medianLabel(
+                                                    evolutionChain,
+                                                    pokemon.name,
+                                                  ),
+                                                  style: TextStyle(
+                                                    color: Theme.of(
+                                                      context,
+                                                    ).colorScheme.outline,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            _Stat(
+                                              label: 'Total',
+                                              labelColor: colorScheme.outline,
+                                              value: '${pokemon.totalStats}',
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ],
                                         ),
                                       ],
-                                    ],
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 24,
-                                    ),
-                                    child: Divider(
-                                      thickness: 0.5,
-                                      color: colorScheme.outlineVariant,
-                                    ),
-                                  ),
-                                  // media total
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Container(
-                                            width: 2,
-                                            height: 14,
-                                            decoration: BoxDecoration(
-                                              color: colorScheme.outline,
-                                              borderRadius:
-                                                  BorderRadius.circular(2),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            evolutionChain.stageLabel(
-                                                      evolutionChain,
-                                                      pokemon.name,
-                                                    ) ==
-                                                    'none'
-                                                ? 'Median of Pokémon that don\'t evolve'
-                                                : 'Median of ${evolutionChain.stageLabel(evolutionChain, pokemon.name)}-stage Pokémon',
-                                            style: TextStyle(
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.outline,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      _Stat(
-                                        label: 'Total',
-                                        labelColor: colorScheme.outline,
-                                        value: '${pokemon.totalStats}',
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              );
-                            },
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  if (pokemon.imageUrl != null)
+                    Image.network(
+                      pokemon.imageUrl!,
+                      height: 240,
+                      fit: BoxFit.contain,
+                    )
+                  else
+                    Icon(Icons.catching_pokemon, size: 120),
+                ],
               ),
             ],
           );
@@ -373,6 +391,7 @@ class _Stat extends StatelessWidget {
     this.fontWeight = FontWeight.w500,
     this.pokemon,
     this.generation,
+    this.gender,
     this.onTypeTap,
     this.onGenerationTap,
   });
@@ -383,6 +402,7 @@ class _Stat extends StatelessWidget {
   final FontWeight fontWeight;
   final Pokemon? pokemon;
   final GenerationInfo? generation;
+  final GenderInfo? gender;
   final void Function(String)? onTypeTap;
   final VoidCallback? onGenerationTap;
 
@@ -411,13 +431,26 @@ class _Stat extends StatelessWidget {
         // type links
         if (onTypeTap != null && pokemon != null)
           for (var i = 0; i < pokemon!.types.length; i++) ...[
-            // add / between types
-            if (i > 0) Text(' / ', style: valueStyle),
+            if (i > 0) const SizedBox(width: 8),
             GestureDetector(
               onTap: () => onTypeTap!(pokemon!.types[i]),
-              child: _LinkText(
-                pokemon!.types[i].capitalized,
-                style: valueStyle,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 10,
+                    backgroundColor: typeColor(pokemon!.types[i]),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Image.asset(
+                        typeBadgeAsset(pokemon!.types[i]),
+                        filterQuality: FilterQuality.high,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  _LinkText(pokemon!.types[i].capitalized, style: valueStyle),
+                ],
               ),
             ),
           ]
@@ -428,6 +461,34 @@ class _Stat extends StatelessWidget {
             child: _LinkText(
               'Gen ${generation!.id} · ${generation!.displayName}',
               style: valueStyle,
+            ),
+          )
+        // gender
+        else if (gender != null)
+          Tooltip(
+            message: gender!.isGenderless
+                ? 'Genderless'
+                : gender!.femalePercentage == 0
+                ? '100% male'
+                : gender!.malePercentage == 0
+                ? '100% female'
+                : '♂ ${gender!.formatPercentage(gender!.malePercentage)}%  '
+                      '♀ ${gender!.formatPercentage(gender!.femalePercentage)}%',
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (gender!.isGenderless)
+                  Icon(Icons.block, size: 16, color: valueStyle.color)
+                else if (gender!.femalePercentage == 0)
+                  Icon(Icons.male, size: 20, color: valueStyle.color)
+                else if (gender!.malePercentage == 0)
+                  Icon(Icons.female, size: 20, color: valueStyle.color)
+                else ...[
+                  Icon(Icons.male, size: 20, color: valueStyle.color),
+                  Icon(Icons.female, size: 20, color: valueStyle.color),
+                ],
+              ],
             ),
           )
         // value text
