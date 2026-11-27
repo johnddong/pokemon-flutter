@@ -1,15 +1,15 @@
 import 'package:pokemon/extensions/string_capitalized.dart';
 
 class EvolutionChainInfo {
-  final String species;
-  final String url;
-  final List<EvolutionChainInfo> evolvesTo;
-
   EvolutionChainInfo({
     required this.url,
     required this.species,
     this.evolvesTo = const [],
   });
+
+  final String species;
+  final String url;
+  final List<EvolutionChainInfo> evolvesTo;
 
   String get displayName => species.capitalized;
 
@@ -42,6 +42,12 @@ class EvolutionChainInfo {
       3 => 'third',
       _ => 'unknown',
     };
+  }
+
+  // 'Median of Pokémon that don\'t evolve' | 'Median of ${stage}-stage Pokémon'
+  String medianLabel(EvolutionChainInfo root, String name) {
+    if (root.isLeaf) return 'Median of Pokémon that don\'t evolve';
+    return 'Median of ${stageLabel(root, name)}-stage Pokémon';
   }
 
   factory EvolutionChainInfo.fromChain(Map<String, dynamic> json) {

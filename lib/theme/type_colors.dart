@@ -25,6 +25,9 @@ Color typeColor(String type) {
   };
 }
 
+// white type glyph on transparent background (tint circle with typeColor in UI)
+String typeBadgeAsset(String type) => 'assets/types/$type.png';
+
 // card surface color for light and dark modes
 Color cardSurface(ColorScheme scheme) {
   return scheme.brightness == Brightness.dark

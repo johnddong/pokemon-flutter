@@ -1,5 +1,7 @@
 import 'package:http/http.dart' as http;
+import 'package:material_ui/material_ui.dart';
 import 'package:pokemon/models/evolution_chain.dart';
+import 'package:pokemon/models/gender_info.dart';
 import 'package:pokemon/models/generation_info.dart';
 import 'dart:convert';
 import 'package:pokemon/models/pokemon_list_item.dart';
@@ -175,16 +177,13 @@ class PokemonApi {
 
     final Map<String, dynamic> data = json.decode(response.body);
 
-    // return EvolutionChainInfo.flattenEvolutionChain(
-    //   data['chain'] as Map<String, dynamic>,
-    //);
-
     return EvolutionChainInfo.fromChain(data['chain'] as Map<String, dynamic>);
   }
 
   // get pokemon species (flavor text, generation info)
   static Future<
     ({
+      GenderInfo gender,
       String flavorText,
       GenerationInfo generation,
       EvolutionChainInfo evolutionChain,
@@ -200,12 +199,20 @@ class PokemonApi {
     }
 
     final Map<String, dynamic> data = json.decode(response.body);
-    final flavorTextEntries = data['flavor_text_entries'] as List;
 
+    // gender
+    final genderRate = data['gender_rate'] as int;
+    final genderInfo = GenderInfo(
+      isGenderless: genderRate == -1,
+      malePercentage: (8 - genderRate) / 8 * 100,
+      femalePercentage: genderRate / 8 * 100,
+    );
+
+    // flavor text
+    final flavorTextEntries = data['flavor_text_entries'] as List;
     final english = flavorTextEntries.where(
       (entry) => (entry as Map)['language']['name'] == 'en',
     );
-
     final flavorText = english.last['flavor_text'] as String;
 
     // get the generation info
@@ -225,6 +232,7 @@ class PokemonApi {
     final evolutionChainInfo = await getEvolutionChain(evolutionChainId);
 
     return (
+      gender: genderInfo,
       flavorText: flavorText.replaceAll('\n', ' '),
       generation: generationInfo,
       evolutionChain: evolutionChainInfo,
