@@ -1,4 +1,5 @@
 import 'package:pokemon/extensions/string_capitalized.dart';
+import 'package:pokemon/models/ability_info.dart';
 import 'package:pokemon/models/pokemon_stat.dart';
 
 class Pokemon {
@@ -9,6 +10,7 @@ class Pokemon {
     required this.types,
     required this.weight,
     required this.height,
+    required this.abilities,
     required this.stats,
   });
 
@@ -18,6 +20,7 @@ class Pokemon {
   final List<String> types;
   final int weight;
   final int height;
+  final List<AbilityInfo> abilities;
   final List<PokemonStat> stats;
 
   // Display name with first letter capitalized
@@ -39,6 +42,12 @@ class Pokemon {
   PokemonStat get strongestStat =>
       stats.reduce((a, b) => a.baseStat > b.baseStat ? a : b);
 
+  // get abilities name
+  String get displayAbilities => abilities
+      .where((ability) => !ability.isHidden)
+      .map((ability) => ability.displayAbility)
+      .join(' / ');
+
   // get the total of all base stats
   int get totalStats => stats.fold(0, (sum, stat) => sum + stat.baseStat);
 
@@ -59,6 +68,9 @@ class Pokemon {
           .toList(),
       weight: json['weight'] as int,
       height: json['height'] as int,
+      abilities: (json['abilities'] as List)
+          .map((a) => AbilityInfo.fromJson(a as Map<String, dynamic>))
+          .toList(),
       stats: (json['stats'] as List)
           .map((s) => PokemonStat.fromJson(s as Map<String, dynamic>))
           .toList(),
