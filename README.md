@@ -16,7 +16,7 @@
 
 |                      屬性列表                       |                        詳情頁                         |
 | :-------------------------------------------------: | :---------------------------------------------------: |
-| ![依屬性篩選後的列表](docs/screenshots/by-type.png) | ![寶可夢詳情頁](docs/screenshots/detail-nidoking.png) |
+| ![依屬性篩選後的列表](docs/screenshots/by-type.png) | ![寶可夢詳情頁](docs/screenshots/detail-nidorino.png) |
 
 ## 執行
 
